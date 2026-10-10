@@ -1,22 +1,14 @@
 package com.hamy.devflow.auth;
 
-import com.hamy.devflow.user.CustomUserDetailsService;
 import com.hamy.devflow.user.User;
-import com.hamy.devflow.user.UserRepository;
 import com.hamy.devflow.user.UserRole;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
-import javax.management.relation.Role;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Map;
 

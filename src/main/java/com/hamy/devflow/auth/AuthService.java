@@ -82,6 +82,9 @@ public class AuthService {
         if(!passwordEncoder.matches(loginRequest.getPassword(),existingUser.getPassword())) {
             throw new BadRequestException("Wrong Password");
         }
+        if(!existingUser.getStatus().equals(UserStatus.ACTIVE)){
+            throw new UnauthorizedException("User is not active");
+        }
         String accessToken = jwtService.generateAccessToken(existingUser);
         String refreshToken = jwtService.generateRefreshToken(existingUser);
         RefreshToken refreshTokenEntity = new RefreshToken();

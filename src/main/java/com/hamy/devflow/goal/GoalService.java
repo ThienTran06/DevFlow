@@ -13,11 +13,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class GoalService {
@@ -38,6 +35,10 @@ public class GoalService {
         newGoal.setUpdatedAt(LocalDateTime.now());
         newGoal.setDescription(newGoalRequest.getDescription());
         newGoal.setTitle(newGoalRequest.getTitle());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails customUserDetails =(CustomUserDetails) authentication.getPrincipal();
+        User currentUser = customUserDetails.getUser();
+        newGoal.setOwner(currentUser);
         Goal savedGoal = goalRepository.save(newGoal);
         return toGoalResponse(savedGoal);
     }

@@ -22,7 +22,7 @@ services:
 
 
   app:
-    build: .
+    image: thientran06/devflow-app:latest
     container_name: devflow_backend
 
     ports:

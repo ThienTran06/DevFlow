@@ -1,12 +1,12 @@
 package com.hamy.devflow.task.dto;
 
-import com.hamy.devflow.goal.Goal;
 import com.hamy.devflow.task.TaskPriority;
 import com.hamy.devflow.task.TaskStatus;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+
 @Getter
 @Setter
 public class TaskResponse {

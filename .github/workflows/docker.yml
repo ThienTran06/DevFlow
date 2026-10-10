@@ -6,20 +6,19 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_DATABASE: devflow_db
-          MYSQL_ROOT_PASSWORD: 211006
-        ports:
-          - 3307:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h localhost"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
+#    services:
+#      mysql:
+#        image: mysql:8.0
+#        env:
+#          MYSQL_DATABASE: devflow_db
+#          MYSQL_ROOT_PASSWORD: ${{secrets.MYSQL_ROOT_PASSWORD}}
+#        ports:
+#          - 3307:3306
+#        options: >-
+#          --health-cmd="mysqladmin ping -h localhost"
+#          --health-interval=10s
+#          --health-timeout=5s
+#          --health-retries=5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -32,8 +31,24 @@ jobs:
 
       - name: Run tests
         run: ./mvnw test
-        env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3307/devflow_db
-          SPRING_DATASOURCE_USERNAME: root
-          SPRING_DATASOURCE_PASSWORD: 211006
+#        env:
+#          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3307/devflow_db
+#          SPRING_DATASOURCE_USERNAME: root
+#          SPRING_DATASOURCE_PASSWORD: ${{secrets.SPRING_DATASOURCE_PASSWORD}}
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build docker image
+        run: docker build -t thientran06/devflow:latest .
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Push docker image
+        run: docker push thientran06/devflow:latest
 

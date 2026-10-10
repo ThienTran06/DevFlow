@@ -4,22 +4,22 @@ import com.hamy.devflow.common.exception.BadRequestException;
 import com.hamy.devflow.common.exception.ResourceNotFoundException;
 import com.hamy.devflow.goal.Goal;
 import com.hamy.devflow.goal.GoalRepository;
-import com.hamy.devflow.goal.GoalStatus;
 import com.hamy.devflow.task.dto.TaskRequest;
 import com.hamy.devflow.task.dto.TaskResponse;
 import com.hamy.devflow.user.CustomUserDetails;
 import com.hamy.devflow.user.User;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class TaskService {
@@ -33,6 +33,12 @@ public class TaskService {
     public TaskResponse createTask(TaskRequest taskRequest) {
         Goal goal = findGoalById(taskRequest.getGoalId());
         Task newTask = new Task();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails customUserDetails =(CustomUserDetails) authentication.getPrincipal();
+        User currentUser = customUserDetails.getUser();
+        if(!currentUser.getId().equals(goal.getOwner().getId())){
+            throw new AccessDeniedException("Người dùng không thuộc goal này");
+        }
         newTask.setTitle(taskRequest.getTitle());
         newTask.setDescription(taskRequest.getDescription());
        if(taskRequest.getStatus() == null) {
@@ -51,6 +57,7 @@ public class TaskService {
        newTask.setCreatedAt(LocalDateTime.now());
        newTask.setUpdatedAt(LocalDateTime.now());
        newTask.setDeadline(taskRequest.getDeadline());
+       newTask.setOwner(currentUser);
        return toTaskResponse(taskRepository.save(newTask));
     }
     @PreAuthorize("hasRole('ADMIN')")
@@ -91,7 +98,7 @@ public class TaskService {
         }
         return toTaskResponse(task);
     }
-    @PreAuthorize("hasAuthority('UPDATE TASK')")
+    @PreAuthorize("hasAuthority('UPDATE_TASK')")
     public TaskResponse updateTaskById(Long taskId, TaskRequest taskRequest) {
         Task task = findTaskById(taskId);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -99,6 +106,12 @@ public class TaskService {
         User currentUser = customUserDetails.getUser();
         if (!task.getOwner().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException("You are not the owner of this task");
+        }
+        Goal goal = findGoalById(taskRequest.getGoalId());
+        if (!goal.getOwner().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException(
+                    "Bạn không có quyền chuyển task sang goal này"
+            );
         }
         task.setTitle(taskRequest.getTitle());
         task.setDescription(taskRequest.getDescription());
@@ -110,7 +123,7 @@ public class TaskService {
         }
         task.setDeadline(taskRequest.getDeadline());
         task.setUpdatedAt(LocalDateTime.now());
-        Goal goal = findGoalById(taskRequest.getGoalId());
+
         task.setGoal(goal);
         return toTaskResponse(taskRepository.save(task));
     }
@@ -126,7 +139,18 @@ public class TaskService {
         taskRepository.delete(task);
     }
     public Page<TaskResponse> findByGoalId(Long goalId,int page,int size) {
-        findGoalById(goalId);
+        Goal goal = findGoalById(goalId);
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails =
+                (CustomUserDetails) authentication.getPrincipal();
+        User currentUser = userDetails.getUser();
+        if (!goal.getOwner().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException(
+                    "Bạn không có quyền xem task trong goal này"
+            );
+        }
+
         Pageable pageable = PageRequest.of(page, size);
         Page<Task> tasksPage = taskRepository.findByGoalId(goalId,pageable);
         return tasksPage.map(this::toTaskResponse);

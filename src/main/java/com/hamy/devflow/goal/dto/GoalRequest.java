@@ -1,8 +1,6 @@
 package com.hamy.devflow.goal.dto;
 
 import com.hamy.devflow.goal.GoalStatus;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
