@@ -64,14 +64,19 @@ public class AuthService {
     }
     private void createAndSendVerifyMail(User user, LocalDateTime now) {
         String token = UUID.randomUUID().toString();
-        EmailVerificationToken emailVerificationToken = new EmailVerificationToken();
+
+        EmailVerificationToken emailVerificationToken =
+                new EmailVerificationToken();
         emailVerificationToken.setToken(token);
         emailVerificationToken.setCreatedAt(now);
         emailVerificationToken.setExpiryDate(now.plusDays(30));
         emailVerificationToken.setOwner(user);
         emailVerificationToken.setVerified(false);
         emailVerificationService.save(emailVerificationToken);
-        mailService.sendVerifyMail(user,emailVerificationToken);
+        System.out.println(">>> VERIFICATION TOKEN SAVED");gi
+        System.out.println(">>> START SENDING VERIFICATION EMAIL");
+        mailService.sendVerifyMail(user, emailVerificationToken);
+        System.out.println(">>> VERIFICATION EMAIL SENT");
     }
     public AuthResponse login(LoginRequest loginRequest) {
         Optional <User> user =userRepository.findByEmail(loginRequest.getEmail());
