@@ -19,6 +19,7 @@ public class AuthController {
     private final MailService mailService;
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
+        System.out.println(">>> AuthController.register() REACHED");
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(registerRequest));
     }
     @PostMapping("/login")
