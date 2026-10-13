@@ -73,7 +73,7 @@ public class AuthService {
         emailVerificationToken.setOwner(user);
         emailVerificationToken.setVerified(false);
         emailVerificationService.save(emailVerificationToken);
-        System.out.println(">>> VERIFICATION TOKEN SAVED");gi
+        System.out.println(">>> VERIFICATION TOKEN SAVED");
         System.out.println(">>> START SENDING VERIFICATION EMAIL");
         mailService.sendVerifyMail(user, emailVerificationToken);
         System.out.println(">>> VERIFICATION EMAIL SENT");
