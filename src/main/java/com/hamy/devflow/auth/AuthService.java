@@ -11,6 +11,7 @@ import com.hamy.devflow.user.*;
 import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
@@ -60,22 +61,20 @@ public class AuthService {
            createAndSendVerifyMail(savedUser,now);
             return new AuthResponse(savedUser.getId(), savedUser.getFullName(), savedUser.getEmail(),savedUser.getRole(),null,"Registered Successfully",null);
     }
+
     private void createAndSendVerifyMail(User user, LocalDateTime now) {
         String token = UUID.randomUUID().toString();
-
-        EmailVerificationToken emailVerificationToken =
-                new EmailVerificationToken();
-        emailVerificationToken.setToken(token);
-        emailVerificationToken.setCreatedAt(now);
-        emailVerificationToken.setExpiryDate(now.plusDays(30));
-        emailVerificationToken.setOwner(user);
-        emailVerificationToken.setVerified(false);
-        emailVerificationService.save(emailVerificationToken);
-        System.out.println(">>> VERIFICATION TOKEN SAVED");
-        System.out.println(">>> START SENDING VERIFICATION EMAIL");
-        mailService.sendVerifyMail(user, emailVerificationToken);
-        System.out.println(">>> VERIFICATION EMAIL SENT");
+        EmailVerificationToken evt = new EmailVerificationToken();
+        evt.setToken(token);
+        evt.setCreatedAt(now);
+        evt.setExpiryDate(now.plusDays(30));
+        evt.setOwner(user);
+        evt.setVerified(false);
+        emailVerificationService.save(evt);
+        mailService.sendVerifyMail(user, evt); // trả về ngay
     }
+    // MailService
+
     public AuthResponse login(LoginRequest loginRequest) {
         Optional <User> user =userRepository.findByEmail(loginRequest.getEmail());
         if (user.isEmpty()) {

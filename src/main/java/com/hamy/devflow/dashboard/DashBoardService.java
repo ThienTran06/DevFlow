@@ -6,6 +6,7 @@ import com.hamy.devflow.goal.GoalStatus;
 import com.hamy.devflow.task.TaskPriority;
 import com.hamy.devflow.task.TaskService;
 import com.hamy.devflow.task.TaskStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,9 +21,23 @@ public class DashBoardService {
         return goalService.getNumberOfGoals(goalStatus);
    }
    private long getNumberOfTasks(TaskStatus taskStatus, TaskPriority taskPriority){
-        return taskService.getNumberOfTasks(taskStatus, taskPriority);
+        return taskService.getNumberOfMyTasks(taskStatus, taskPriority);
    }
    public DashBoardResponse getDashBoardResponse(){
+        DashBoardResponse dashBoardResponse = new DashBoardResponse();
+        dashBoardResponse.setTotalGoals(getMyNumberOfGoals(null));
+        dashBoardResponse.setDoneTasks(getMyNumberOfTasks(TaskStatus.DONE, null));
+        dashBoardResponse.setTotalTasks(getMyNumberOfTasks(null,null));
+        dashBoardResponse.setDoneGoals(getMyNumberOfGoals(GoalStatus.DONE));
+        dashBoardResponse.setInProgressGoals(getMyNumberOfGoals(GoalStatus.IN_PROGRESS));
+        dashBoardResponse.setInProgressTasks(getMyNumberOfTasks(TaskStatus.IN_PROGRESS, null));
+        dashBoardResponse.setHighPriorityTasks(getMyNumberOfTasks(null, TaskPriority.HIGH));
+        dashBoardResponse.setTodoTasks(getMyNumberOfTasks(TaskStatus.TODO,null));
+        dashBoardResponse.setTodoGoals(getMyNumberOfGoals(GoalStatus.TODO));
+        return dashBoardResponse;
+   }
+   @PreAuthorize("hasRole('ADMIN')")
+    public DashBoardResponse getAdminDashBoardResponse(){
         DashBoardResponse dashBoardResponse = new DashBoardResponse();
         dashBoardResponse.setTotalGoals(getNumberOfGoals(null));
         dashBoardResponse.setDoneTasks(getNumberOfTasks(TaskStatus.DONE, null));
@@ -34,5 +49,11 @@ public class DashBoardService {
         dashBoardResponse.setTodoTasks(getNumberOfTasks(TaskStatus.TODO,null));
         dashBoardResponse.setTodoGoals(getNumberOfGoals(GoalStatus.TODO));
         return dashBoardResponse;
+    }
+   private long getMyNumberOfGoals(GoalStatus goalStatus){
+        return goalService.getMyNumberOfGoals(goalStatus);
+   }
+   private long getMyNumberOfTasks(TaskStatus taskStatus, TaskPriority taskPriority){
+        return taskService.getNumberOfMyTasks(taskStatus, taskPriority);
    }
 }

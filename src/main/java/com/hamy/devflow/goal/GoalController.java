@@ -2,7 +2,9 @@ package com.hamy.devflow.goal;
 
 import com.hamy.devflow.goal.dto.GoalRequest;
 import com.hamy.devflow.goal.dto.GoalResponse;
+import com.hamy.devflow.task.TaskPriority;
 import com.hamy.devflow.task.TaskService;
+import com.hamy.devflow.task.TaskStatus;
 import com.hamy.devflow.task.dto.TaskResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -44,5 +46,13 @@ public class GoalController {
     @GetMapping("/{goalId}/tasks")
     public Page<TaskResponse> getTasksByGoalId(@PathVariable Long goalId,@RequestParam(defaultValue = "0")int page,@RequestParam(defaultValue = "10")int size) {
         return taskService.findByGoalId(goalId,page,size);
+    }
+    @GetMapping("/admin")
+    public long countGoals(@RequestParam(required=false) GoalStatus goalStatus) {
+        return goalService.getNumberOfGoals(goalStatus);
+    }
+    @GetMapping("/count")
+    public long countMyTasks(@RequestParam(required=false) GoalStatus goalStatus) {
+        return goalService.getMyNumberOfGoals(goalStatus);
     }
 }

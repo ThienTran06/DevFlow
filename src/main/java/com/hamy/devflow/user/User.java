@@ -20,18 +20,16 @@ public class User {
     private Long id;
     @Column(nullable = false)
     private String fullName;
-
     @Column(nullable = false, unique = true)
     private String email;
-
     @Column(nullable = false)
     private String password;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserStatus status;
 }

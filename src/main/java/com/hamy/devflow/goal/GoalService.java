@@ -109,4 +109,23 @@ public class GoalService {
         }
         return goalRepository.countByStatus(goalStatus);
     }
+    @PreAuthorize("hasAuthority('VIEW_GOAL')")
+    public long getMyNumberOfGoals(GoalStatus goalStatus) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails customUserDetails =(CustomUserDetails) authentication.getPrincipal();
+        User currentUser = customUserDetails.getUser();
+        if(goalStatus == null){
+            return goalRepository.countByOwner(currentUser);
+        }
+        return goalRepository.countByOwnerAndStatus(currentUser, goalStatus);
+    }
+    @PreAuthorize("hasAuthority('VIEW_GOAL')")
+    public Page<GoalResponse> getMyGoals(Pageable pageable) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails customUserDetails =(CustomUserDetails) authentication.getPrincipal();
+        User currentUser = customUserDetails.getUser();
+        Page<Goal> goalsPage = goalRepository.findByOwner(currentUser, pageable);
+        return goalsPage.map(this::toGoalResponse);
+    }
+
 }

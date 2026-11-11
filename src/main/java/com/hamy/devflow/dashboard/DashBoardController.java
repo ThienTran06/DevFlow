@@ -16,5 +16,9 @@ public class DashBoardController {
     public DashBoardResponse getDashBoard() {
         return dashBoardService.getDashBoardResponse();
     }
+    @GetMapping("/admin")
+    public DashBoardResponse getAdminDashboard() {
+    return dashBoardService.getAdminDashBoardResponse();
+    }
 
 }

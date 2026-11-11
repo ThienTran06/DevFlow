@@ -196,4 +196,24 @@ public class TaskService {
            return taskRepository.countByStatus(taskStatus);
         }
     }
+    @PreAuthorize("hasAuthority('VIEW_TASK')")
+    public long getNumberOfMyTasks(TaskStatus taskStatus, TaskPriority taskPriority) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails =
+                (CustomUserDetails) authentication.getPrincipal();
+        User currentUser = userDetails.getUser();
+        if(taskStatus == null&&taskPriority==null){
+            return taskRepository.countByOwner(currentUser);
+        }
+        else if(taskStatus != null&&taskPriority!=null){
+            return taskRepository.countByOwnerAndStatusAndPriority(currentUser,taskStatus,taskPriority);
+        }
+        else if(taskStatus==null){
+            return taskRepository.countByOwnerAndPriority(currentUser,taskPriority);
+        }
+        else{
+            return taskRepository.countByOwnerAndStatus(currentUser,taskStatus);
+        }
+    }
+
 }

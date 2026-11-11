@@ -51,7 +51,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/error", "/actuator/health").permitAll()
                         .anyRequest().authenticated()
-                ).exceptionHandling(errors->errors
-                        .authenticationEntryPoint((request, response, authException) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED,"Lỗi: Request từ 1 người dùng chưa được xác thực") )).build();
+                ).exceptionHandling(errors -> errors
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write("{\"message\":\"You are not authorized to access this resource\"}");
+                            })
+                ).build();
     }
 }

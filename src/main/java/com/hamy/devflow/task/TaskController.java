@@ -41,5 +41,9 @@ public class TaskController {
     public Page<TaskResponse> getAllTasks(@RequestParam(defaultValue = "0")int page,@RequestParam(defaultValue = "10") int size){
         return taskService.getAllTasks(page,size);
     }
+    @GetMapping("/admin/count")
+    public long countAllTasks(@RequestParam(required=false)TaskStatus status, @RequestParam(required=false)TaskPriority priority) {
+        return taskService.getNumberOfTasks(status,priority);
+    }
 
 }
