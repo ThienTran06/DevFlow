@@ -17,12 +17,7 @@ public class DashBoardService {
         this.goalService = goalService;
         this.taskService = taskService;
     }
-   private long getNumberOfGoals(GoalStatus goalStatus){
-        return goalService.getNumberOfGoals(goalStatus);
-   }
-   private long getNumberOfTasks(TaskStatus taskStatus, TaskPriority taskPriority){
-        return taskService.getNumberOfMyTasks(taskStatus, taskPriority);
-   }
+
    public DashBoardResponse getDashBoardResponse(){
         DashBoardResponse dashBoardResponse = new DashBoardResponse();
         dashBoardResponse.setTotalGoals(getMyNumberOfGoals(null));
@@ -56,4 +51,10 @@ public class DashBoardService {
    private long getMyNumberOfTasks(TaskStatus taskStatus, TaskPriority taskPriority){
         return taskService.getNumberOfMyTasks(taskStatus, taskPriority);
    }
+   private long getNumberOfGoals(GoalStatus goalStatus){
+        return goalService.getNumberOfGoals(goalStatus);
+    }
+   private long getNumberOfTasks(TaskStatus taskStatus, TaskPriority taskPriority){
+        return taskService.getNumberOfTasks(taskStatus, taskPriority);
+    }
 }

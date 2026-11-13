@@ -5,6 +5,7 @@ import com.hamy.devflow.user.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -15,10 +16,18 @@ import java.util.Map;
 
 @Service
 public class JwtService {
-    private final static String ACCESS_TOKEN_SECRET_KEY =  "my-super-secret-key-my-super-secret-key-123456";
-    private final static String REFRESH_TOKEN_SERECT_KEY = "my-super-secret-key-my-super-secret-key-1234567";
+    private final String accessTokenSecretKey;
+    private final String refreshTokenSecretKey;
     private final static long ACCESS_TOKEN_EXPIRATION_TIME = 1000*60*60*24;
     private final static long REFRESH_TOKEN_EXPIRATION_TIME = 1000*60*60*24*7;
+
+    public JwtService(
+            @Value("${jwt.access-secret}") String accessTokenSecretKey,
+            @Value("${jwt.refresh-secret}") String refreshTokenSecretKey) {
+        this.accessTokenSecretKey = accessTokenSecretKey;
+        this.refreshTokenSecretKey = refreshTokenSecretKey;
+    }
+
     public String generateAccessToken(User user) {
         Map<String, Object> claims = Map.of(
                 "role" , user.getRole().name()
@@ -41,11 +50,11 @@ public class JwtService {
                 .compact();
     }
     private SecretKey getAccessTokenSigningKey() {
-        byte[] keyBytes = ACCESS_TOKEN_SECRET_KEY.getBytes(StandardCharsets.UTF_8);
+        byte[] keyBytes = accessTokenSecretKey.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
     private SecretKey getRefreshTokenSigningKey() {
-        byte[] keyBytes = REFRESH_TOKEN_SERECT_KEY.getBytes(StandardCharsets.UTF_8);
+        byte[] keyBytes = refreshTokenSecretKey.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
     private  Claims parseClaims(String token, SecretKey serectKey){

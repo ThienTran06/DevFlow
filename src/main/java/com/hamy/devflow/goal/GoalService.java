@@ -43,9 +43,15 @@ public class GoalService {
         return toGoalResponse(savedGoal);
     }
     @PreAuthorize("hasRole('ADMIN')")
-    public Page<GoalResponse> getAllGoals(int page, int size) {
+    public Page<GoalResponse> getAllGoals(int page, int size,GoalStatus status) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Goal> goalsPage = goalRepository.findAll(pageable);
+        Page<Goal> goalsPage;
+        if(status == null){
+             goalsPage = goalRepository.findAll(pageable);
+        }
+        else{
+             goalsPage = goalRepository.findByStatus(status, pageable);
+        }
         return goalsPage.map(this::toGoalResponse);
     }
     @PreAuthorize("hasAuthority('VIEW_GOAL')")
@@ -120,11 +126,15 @@ public class GoalService {
         return goalRepository.countByOwnerAndStatus(currentUser, goalStatus);
     }
     @PreAuthorize("hasAuthority('VIEW_GOAL')")
-    public Page<GoalResponse> getMyGoals(Pageable pageable) {
+    public Page<GoalResponse> getMyGoals(Pageable pageable,GoalStatus goalStatus) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails customUserDetails =(CustomUserDetails) authentication.getPrincipal();
         User currentUser = customUserDetails.getUser();
-        Page<Goal> goalsPage = goalRepository.findByOwner(currentUser, pageable);
+        if(goalStatus == null){
+            Page<Goal> goalsPage = goalRepository.findByOwner(currentUser, pageable);
+            return goalsPage.map(this::toGoalResponse);
+        }
+            Page<Goal> goalsPage = goalRepository.findByOwnerAndStatus(currentUser,goalStatus, pageable);
         return goalsPage.map(this::toGoalResponse);
     }
 

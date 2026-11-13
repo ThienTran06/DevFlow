@@ -8,6 +8,8 @@ import com.hamy.devflow.task.TaskStatus;
 import com.hamy.devflow.task.dto.TaskResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +24,8 @@ public class GoalController {
         this.taskService = taskService;
     }
     @GetMapping
-    public Page<GoalResponse> getGoals(int page, int size) {
-        return goalService.getAllGoals(page, size);
+    public Page<GoalResponse> getGoals(@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "10")int size,@RequestParam(required = false) GoalStatus status) {
+        return goalService.getAllGoals(page, size, status);
     }
     @GetMapping("/{id}")
     public GoalResponse getGoalById(@PathVariable Long id){
@@ -54,5 +56,10 @@ public class GoalController {
     @GetMapping("/count")
     public long countMyTasks(@RequestParam(required=false) GoalStatus goalStatus) {
         return goalService.getMyNumberOfGoals(goalStatus);
+    }
+    @GetMapping("/mines")
+    public Page<GoalResponse> getMyGoals(@RequestParam(defaultValue = "0")int page,@RequestParam(defaultValue = "10") int size,@RequestParam(required = false) GoalStatus goalStatus) {
+        Pageable pageable = PageRequest.of(page, size);
+        return goalService.getMyGoals(pageable, goalStatus);
     }
 }

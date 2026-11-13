@@ -25,7 +25,7 @@ public class MailServiceImpl implements MailService {
                 "\nHello "+username +","+
                 "\nWe send this mail to request you to verify your account."
                 +"\nClick the link below to verify your account."
-                +"\nhttp://localhost:8080/api/auth/reset-password?token="+mailToken
+                +"\nhttp://localhost:8080/api/auth/verify-email?token="+mailToken
                 +"\nIf you did not request this, you can safely ignore this email."
         );
         simpleMailMessage.setSubject("Verify your account");

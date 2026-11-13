@@ -38,8 +38,8 @@ public class TaskController {
         return taskService.getTasks(status,priority,page,size,sortBy,direction);
     }
     @GetMapping("/admin")
-    public Page<TaskResponse> getAllTasks(@RequestParam(defaultValue = "0")int page,@RequestParam(defaultValue = "10") int size){
-        return taskService.getAllTasks(page,size);
+    public Page<TaskResponse> getAllTasks(@RequestParam(required=false)TaskStatus status, @RequestParam(required=false)TaskPriority priority,@RequestParam(defaultValue = "0")int page,@RequestParam(defaultValue = "10") int size){
+        return taskService.getAllTasks(page,size,status,priority);
     }
     @GetMapping("/admin/count")
     public long countAllTasks(@RequestParam(required=false)TaskStatus status, @RequestParam(required=false)TaskPriority priority) {

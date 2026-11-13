@@ -61,9 +61,21 @@ public class TaskService {
        return toTaskResponse(taskRepository.save(newTask));
     }
     @PreAuthorize("hasRole('ADMIN')")
-    public Page<TaskResponse> getAllTasks(int Page, int size) {
+    public Page<TaskResponse> getAllTasks(int Page, int size,TaskStatus status, TaskPriority priority) {
        Pageable pageable = PageRequest.of(Page, size);
-       Page<Task> tasksPage = taskRepository.findAll(pageable);
+       Page<Task> tasksPage;
+       if(status == null&&priority == null){
+            tasksPage = taskRepository.findAll(pageable);
+       }
+       else if(status == null){
+           tasksPage = taskRepository.findByPriority(priority, pageable);
+       }
+       else if(priority == null){
+           tasksPage= taskRepository.findByStatus(status, pageable);
+       }
+       else{
+           tasksPage= taskRepository.findByStatusAndPriority(status, priority, pageable);
+       }
        return tasksPage.map(this::toTaskResponse);
     }
 
