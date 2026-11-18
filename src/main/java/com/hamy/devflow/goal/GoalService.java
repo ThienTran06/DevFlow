@@ -31,8 +31,10 @@ public class GoalService {
         } else {
             newGoal.setStatus(newGoalRequest.getStatus());
         }
+
         newGoal.setCreatedAt(LocalDateTime.now());
         newGoal.setUpdatedAt(LocalDateTime.now());
+        newGoal.setDeadline(newGoalRequest.getDeadline());
         newGoal.setDescription(newGoalRequest.getDescription());
         newGoal.setTitle(newGoalRequest.getTitle());
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -43,15 +45,20 @@ public class GoalService {
         return toGoalResponse(savedGoal);
     }
     @PreAuthorize("hasRole('ADMIN')")
-    public Page<GoalResponse> getAllGoals(int page, int size,GoalStatus status) {
+    public Page<GoalResponse> getAllGoals(Long userId,int page, int size,GoalStatus status,Boolean overdue) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Goal> goalsPage;
-        if(status == null){
-             goalsPage = goalRepository.findAll(pageable);
-        }
-        else{
-             goalsPage = goalRepository.findByStatus(status, pageable);
-        }
+        Page<Goal> goalsPage= goalRepository.findGoals(userId,status,overdue,LocalDateTime.now(),GoalStatus.DONE,pageable);
+        return goalsPage.map(this::toGoalResponse);
+    }
+    @PreAuthorize("hasAuthority('VIEW_GOAL')")
+    public Page<GoalResponse> getGoals(int page, int size,GoalStatus status,Boolean overdue) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails =
+                (CustomUserDetails) authentication.getPrincipal();
+        User currentUser = userDetails.getUser();
+        Page<Goal> goalsPage=goalRepository.findGoals(currentUser.getId(),status,overdue,LocalDateTime.now(),GoalStatus.DONE,pageable);
         return goalsPage.map(this::toGoalResponse);
     }
     @PreAuthorize("hasAuthority('VIEW_GOAL')")
@@ -74,6 +81,7 @@ public class GoalService {
         if (!goal.getOwner().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException("You are not the owner of this goal");
         }
+        goal.setDeadline(newGoalRequest.getDeadline());
         goal.setDescription(newGoalRequest.getDescription());
         goal.setTitle(newGoalRequest.getTitle());
         goal.setUpdatedAt(LocalDateTime.now());
@@ -97,11 +105,13 @@ public class GoalService {
     private GoalResponse toGoalResponse(Goal goal){
         GoalResponse goalResponse = new GoalResponse();
         goalResponse.setId(goal.getId());
+        goalResponse.setDeadline(goal.getDeadline());
         goalResponse.setDescription(goal.getDescription());
         goalResponse.setTitle(goal.getTitle());
         goalResponse.setCreatedAt(goal.getCreatedAt());
         goalResponse.setUpdatedAt(goal.getUpdatedAt());
         goalResponse.setStatus(goal.getStatus());
+        goalResponse.setOverdue(goal.getDeadline()!=null&&goal.getDeadline().isBefore(LocalDateTime.now())&&goal.getStatus()!=GoalStatus.DONE);
         return goalResponse;
     }
     private Goal findGoalById(Long id){

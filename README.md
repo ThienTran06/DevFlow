@@ -35,9 +35,12 @@ JWT_REFRESH_SECRET=replace-with-a-different-long-random-secret
 
 MAIL_USERNAME=your-email@gmail.com
 MAIL_PASSWORD=your-gmail-app-password
+
+APP_VERIFY_EMAIL_URL=http://localhost:3000/verify-email
+APP_RESET_PASSWORD_URL=http://localhost:3000/reset-password
 ```
 
-The local Spring profile connects to MySQL at `localhost:3307`. Email verification and password-reset flows require working SMTP credentials.
+The local Spring profile connects to MySQL at `localhost:3307`. Set the two `APP_*_URL` values to the corresponding pages in your frontend. The frontend receives the token as a `token` query parameter and should submit it to `POST /api/auth/verify-email` or `POST /api/auth/reset-password` in the JSON request body. Email flows require working SMTP credentials.
 
 ## Run with Docker Compose
 

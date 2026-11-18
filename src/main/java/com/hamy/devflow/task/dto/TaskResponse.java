@@ -20,4 +20,5 @@ public class TaskResponse {
     private LocalDateTime updatedAt;
     private Long goalId;
     private String goalTitle;
+    private Boolean overdue;
 }

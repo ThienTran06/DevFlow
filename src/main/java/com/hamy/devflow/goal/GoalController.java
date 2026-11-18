@@ -24,8 +24,12 @@ public class GoalController {
         this.taskService = taskService;
     }
     @GetMapping
-    public Page<GoalResponse> getGoals(@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "10")int size,@RequestParam(required = false) GoalStatus status) {
-        return goalService.getAllGoals(page, size, status);
+    public Page<GoalResponse> getGoals(@RequestParam(required = false)Long userId,@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "10")int size,@RequestParam(required = false) GoalStatus status,@RequestParam(required = false,defaultValue = "false",name="overdue")Boolean overdue) {
+        return goalService.getAllGoals(userId,page, size, status,overdue);
+    }
+    @GetMapping("/mines")
+    public Page<GoalResponse> getGoals(@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "10")int size,@RequestParam(required = false) GoalStatus status,@RequestParam(required = false,defaultValue = "false",name="overdue")Boolean overdue) {
+        return goalService.getGoals(page, size, status,overdue);
     }
     @GetMapping("/{id}")
     public GoalResponse getGoalById(@PathVariable Long id){
@@ -56,10 +60,5 @@ public class GoalController {
     @GetMapping("/count")
     public long countMyTasks(@RequestParam(required=false) GoalStatus goalStatus) {
         return goalService.getMyNumberOfGoals(goalStatus);
-    }
-    @GetMapping("/mines")
-    public Page<GoalResponse> getMyGoals(@RequestParam(defaultValue = "0")int page,@RequestParam(defaultValue = "10") int size,@RequestParam(required = false) GoalStatus goalStatus) {
-        Pageable pageable = PageRequest.of(page, size);
-        return goalService.getMyGoals(pageable, goalStatus);
     }
 }

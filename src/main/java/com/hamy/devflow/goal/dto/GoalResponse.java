@@ -18,5 +18,7 @@ public class GoalResponse {
     private String description;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime deadline;
+    private Boolean overdue;
     private GoalStatus status;
 }

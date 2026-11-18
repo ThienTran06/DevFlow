@@ -22,6 +22,7 @@ public class Goal {
     private String description;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime deadline;
     @Enumerated(EnumType.STRING)
     private GoalStatus status;
     @ManyToOne

@@ -94,6 +94,7 @@ public class TaskService {
         taskResponse.setUpdatedAt(task.getUpdatedAt());
         taskResponse.setGoalId(task.getGoal().getId());
         taskResponse.setGoalTitle(task.getGoal().getTitle());
+        taskResponse.setOverdue(task.getDeadline()!=null&&task.getDeadline().isBefore(LocalDateTime.now())&&task.getStatus()!=TaskStatus.DONE);
         return taskResponse;
     }
     private Task findTaskById(Long taskId) {
@@ -169,7 +170,7 @@ public class TaskService {
     }
 
     @PreAuthorize("hasAuthority('VIEW_TASK')")
-    public Page<TaskResponse> getTasks(TaskStatus status, TaskPriority priority, int page, int size,String sortBy, String sortOrder) {
+    public Page<TaskResponse> getTasks(Boolean overdue,TaskStatus status, TaskPriority priority, int page, int size,String sortBy, String sortOrder) {
         List<String> acceptedSortByFields = List.of("id","priority","status","createdAt","updatedAt","deadline","title");
         if(!acceptedSortByFields.contains(sortBy)) {throw new BadRequestException("Invalid sort field: "+sortBy);}
         Sort sort = sortOrder.equalsIgnoreCase("asc")?Sort.by(sortBy).ascending():Sort.by(sortBy).descending();
@@ -179,19 +180,9 @@ public class TaskService {
         CustomUserDetails userDetails =
                 (CustomUserDetails) authentication.getPrincipal();
         User currentUser = userDetails.getUser();
-        if(status != null&&priority!=null) {
-            taskPage = taskRepository.findByOwnerAndStatusAndPriority(currentUser,status,priority,pageable);
-        }
-        else if(status==null&&priority==null) {
-            taskPage = taskRepository.findByOwner(currentUser,pageable);
-        }
-        else if(status==null) {
-            taskPage = taskRepository.findByOwnerAndPriority(currentUser,priority,pageable);
-        }
-        else {
-            taskPage = taskRepository.findByOwnerAndStatus(currentUser,status,pageable);
-        }
-        return taskPage.map(this::toTaskResponse);
+
+      taskPage = taskRepository.findTasks(currentUser,status,priority,overdue,LocalDateTime.now(),TaskStatus.DONE,pageable);
+      return taskPage.map(this::toTaskResponse);
     }
     @PreAuthorize("hasRole('ADMIN')")
     public long getNumberOfTasks( TaskStatus taskStatus, TaskPriority taskPriority) {

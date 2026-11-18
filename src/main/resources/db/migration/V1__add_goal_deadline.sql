@@ -1,0 +1,2 @@
+ALTER TABLE goals
+    ADD COLUMN deadline DATETIME(6) NULL;

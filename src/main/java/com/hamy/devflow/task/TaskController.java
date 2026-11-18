@@ -33,9 +33,9 @@ public class TaskController {
         return taskService.updateTaskById(id, taskRequest);
     }
     @GetMapping
-    public Page<TaskResponse> getTasks(@RequestParam(required=false)TaskStatus status, @RequestParam(required=false)TaskPriority priority,@RequestParam(defaultValue = "0")int page,@RequestParam(defaultValue = "10") int size,@RequestParam(defaultValue = "createdAt") String sortBy,
+    public Page<TaskResponse> getTasks(@RequestParam(required=false,defaultValue = "false",name="overdue")Boolean overdue ,@RequestParam(required=false)TaskStatus status, @RequestParam(required=false)TaskPriority priority,@RequestParam(defaultValue = "0")int page,@RequestParam(defaultValue = "10") int size,@RequestParam(defaultValue = "createdAt") String sortBy,
                                        @RequestParam(defaultValue = "desc") String direction ) {
-        return taskService.getTasks(status,priority,page,size,sortBy,direction);
+        return taskService.getTasks(overdue,status,priority,page,size,sortBy,direction);
     }
     @GetMapping("/admin")
     public Page<TaskResponse> getAllTasks(@RequestParam(required=false)TaskStatus status, @RequestParam(required=false)TaskPriority priority,@RequestParam(defaultValue = "0")int page,@RequestParam(defaultValue = "10") int size){
