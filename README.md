@@ -79,6 +79,15 @@ On macOS or Linux:
 ./mvnw spring-boot:run
 ```
 
+## Database migrations
+
+Flyway migrations are stored in `src/main/resources/db/migration` and run when the application starts. Hibernate uses `ddl-auto=validate`, so schema changes must be made through a new migration rather than automatic entity updates.
+
+- A new database runs `V1__create_initial_schema.sql` followed by `V2__add_goal_deadline.sql`.
+- The existing local database is baselined at version 1 so Flyway preserves its tables and applies V2.
+- Do not edit migrations after they have been applied. Add a new, higher-version migration instead.
+- Before baselining an existing production database, back it up and verify that its schema matches V1.
+
 ## API overview
 
 All routes other than authentication and health checks require an access token in the `Authorization: Bearer <access-token>` header. Request and response bodies use JSON.
