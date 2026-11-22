@@ -29,6 +29,8 @@ public class GoalServiceTest {
     private GoalService goalService;
     @Mock
     private GoalRepository goalRepository;
+    @Mock
+    private GoalMapper goalMapper;
     @Captor
     private ArgumentCaptor<Goal> captor;
     @AfterEach
@@ -87,6 +89,11 @@ public class GoalServiceTest {
         goal.setStatus(GoalStatus.IN_PROGRESS);
         goal.setTitle("Hoc Java");
         when(goalRepository.findById(10L)).thenReturn(Optional.of(goal));
+        GoalResponse expectedResponse = new GoalResponse();
+        expectedResponse.setId(goal.getId());
+        expectedResponse.setStatus(goal.getStatus());
+        expectedResponse.setTitle(goal.getTitle());
+        when(goalMapper.toResponse(goal)).thenReturn(expectedResponse);
         GoalResponse goalResponse = goalService.getGoalById(10L);
         assertEquals(10L, goalResponse.getId());
         assertEquals(GoalStatus.IN_PROGRESS, goalResponse.getStatus());

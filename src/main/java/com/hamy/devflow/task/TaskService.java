@@ -8,11 +8,12 @@ import com.hamy.devflow.task.dto.TaskRequest;
 import com.hamy.devflow.task.dto.TaskResponse;
 import com.hamy.devflow.user.CustomUserDetails;
 import com.hamy.devflow.user.User;
+import com.hamy.devflow.utils.CheckPageAndSizeUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.access.AccessDeniedException;
+import com.hamy.devflow.common.exception.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,9 +24,12 @@ import java.util.List;
 
 @Service
 public class TaskService {
+    private CheckPageAndSizeUtil checkPageAndSizeUtil;
+    private final TaskMapper taskMapper;
     private final TaskRepository taskRepository;
     private final GoalRepository goalRepository;
-    public TaskService(TaskRepository taskRepository,GoalRepository goalRepository) {
+    public TaskService(TaskMapper taskMapper, TaskRepository taskRepository, GoalRepository goalRepository) {
+        this.taskMapper = taskMapper;
         this.taskRepository = taskRepository;
         this.goalRepository = goalRepository;
     }
@@ -62,6 +66,7 @@ public class TaskService {
     }
     @PreAuthorize("hasRole('ADMIN')")
     public Page<TaskResponse> getAllTasks(int Page, int size,TaskStatus status, TaskPriority priority) {
+       checkPageAndSizeUtil.checkPageAndSize(Page, size);
        Pageable pageable = PageRequest.of(Page, size);
        Page<Task> tasksPage;
        if(status == null&&priority == null){
@@ -83,19 +88,19 @@ public class TaskService {
         return goalRepository.findById(goalId).orElseThrow(()-> new ResourceNotFoundException("Không tìm thấy goal có id = " + goalId));
     }
     private TaskResponse toTaskResponse(Task task) {
-        TaskResponse taskResponse = new TaskResponse();
-        taskResponse.setId(task.getId());
-        taskResponse.setTitle(task.getTitle());
-        taskResponse.setDescription(task.getDescription());
-        taskResponse.setStatus(task.getStatus());
-        taskResponse.setDeadline(task.getDeadline());
-        taskResponse.setPriority(task.getPriority());
-        taskResponse.setCreatedAt(task.getCreatedAt());
-        taskResponse.setUpdatedAt(task.getUpdatedAt());
-        taskResponse.setGoalId(task.getGoal().getId());
-        taskResponse.setGoalTitle(task.getGoal().getTitle());
-        taskResponse.setOverdue(task.getDeadline()!=null&&task.getDeadline().isBefore(LocalDateTime.now())&&task.getStatus()!=TaskStatus.DONE);
-        return taskResponse;
+//        TaskResponse taskResponse = new TaskResponse();
+//        taskResponse.setId(task.getId());
+//        taskResponse.setTitle(task.getTitle());
+//        taskResponse.setDescription(task.getDescription());
+//        taskResponse.setStatus(task.getStatus());
+//        taskResponse.setDeadline(task.getDeadline());
+//        taskResponse.setPriority(task.getPriority());
+//        taskResponse.setCreatedAt(task.getCreatedAt());
+//        taskResponse.setUpdatedAt(task.getUpdatedAt());
+//        taskResponse.setGoalId(task.getGoal().getId());
+//        taskResponse.setGoalTitle(task.getGoal().getTitle());
+//        taskResponse.setOverdue(task.getDeadline()!=null&&task.getDeadline().isBefore(LocalDateTime.now())&&task.getStatus()!=TaskStatus.DONE);
+        return taskMapper.toResponse(task);
     }
     private Task findTaskById(Long taskId) {
         return taskRepository.findById(taskId).orElseThrow(()->new ResourceNotFoundException("Không tìm thấy task có id ="+taskId));
@@ -171,6 +176,7 @@ public class TaskService {
 
     @PreAuthorize("hasAuthority('VIEW_TASK')")
     public Page<TaskResponse> getTasks(Boolean overdue,TaskStatus status, TaskPriority priority, int page, int size,String sortBy, String sortOrder) {
+        checkPageAndSizeUtil.checkPageAndSize(page, size);
         List<String> acceptedSortByFields = List.of("id","priority","status","createdAt","updatedAt","deadline","title");
         if(!acceptedSortByFields.contains(sortBy)) {throw new BadRequestException("Invalid sort field: "+sortBy);}
         Sort sort = sortOrder.equalsIgnoreCase("asc")?Sort.by(sortBy).ascending():Sort.by(sortBy).descending();

@@ -5,10 +5,11 @@ import com.hamy.devflow.goal.dto.GoalRequest;
 import com.hamy.devflow.goal.dto.GoalResponse;
 import com.hamy.devflow.user.CustomUserDetails;
 import com.hamy.devflow.user.User;
+import com.hamy.devflow.utils.CheckPageAndSizeUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
+import com.hamy.devflow.common.exception.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,10 +19,12 @@ import java.time.LocalDateTime;
 
 @Service
 public class GoalService {
-
+    private CheckPageAndSizeUtil checkPageAndSizeUtil;
     private final GoalRepository goalRepository;
-    public GoalService(GoalRepository goalRepository) {
+    private final GoalMapper goalMapper;
+    public GoalService(GoalRepository goalRepository, GoalMapper goalMapper) {
         this.goalRepository = goalRepository;
+        this.goalMapper = goalMapper;
     }
     @PreAuthorize("hasAuthority('CREATE_GOAL')")
     public GoalResponse createGoal(GoalRequest newGoalRequest) {
@@ -46,14 +49,15 @@ public class GoalService {
     }
     @PreAuthorize("hasRole('ADMIN')")
     public Page<GoalResponse> getAllGoals(Long userId,int page, int size,GoalStatus status,Boolean overdue) {
+        checkPageAndSizeUtil.checkPageAndSize(page, size);
         Pageable pageable = PageRequest.of(page, size);
         Page<Goal> goalsPage= goalRepository.findGoals(userId,status,overdue,LocalDateTime.now(),GoalStatus.DONE,pageable);
         return goalsPage.map(this::toGoalResponse);
     }
     @PreAuthorize("hasAuthority('VIEW_GOAL')")
     public Page<GoalResponse> getGoals(int page, int size,GoalStatus status,Boolean overdue) {
+        checkPageAndSizeUtil.checkPageAndSize(page, size);
         Pageable pageable = PageRequest.of(page, size);
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails =
                 (CustomUserDetails) authentication.getPrincipal();
@@ -103,16 +107,17 @@ public class GoalService {
         goalRepository.delete(goal);
     }
     private GoalResponse toGoalResponse(Goal goal){
-        GoalResponse goalResponse = new GoalResponse();
-        goalResponse.setId(goal.getId());
-        goalResponse.setDeadline(goal.getDeadline());
-        goalResponse.setDescription(goal.getDescription());
-        goalResponse.setTitle(goal.getTitle());
-        goalResponse.setCreatedAt(goal.getCreatedAt());
-        goalResponse.setUpdatedAt(goal.getUpdatedAt());
-        goalResponse.setStatus(goal.getStatus());
-        goalResponse.setOverdue(goal.getDeadline()!=null&&goal.getDeadline().isBefore(LocalDateTime.now())&&goal.getStatus()!=GoalStatus.DONE);
-        return goalResponse;
+//        GoalResponse goalResponse = new GoalResponse();
+//        goalResponse.setId(goal.getId());
+//        goalResponse.setDeadline(goal.getDeadline());
+//        goalResponse.setDescription(goal.getDescription());
+//        goalResponse.setTitle(goal.getTitle());
+//        goalResponse.setCreatedAt(goal.getCreatedAt());
+//        goalResponse.setUpdatedAt(goal.getUpdatedAt());
+//        goalResponse.setStatus(goal.getStatus());
+//        goalResponse.setOverdue(goal.getDeadline()!=null&&goal.getDeadline().isBefore(LocalDateTime.now())&&goal.getStatus()!=GoalStatus.DONE);
+//        return goalResponse;
+        return goalMapper.toResponse(goal);
     }
     private Goal findGoalById(Long id){
        return goalRepository.findById(id)

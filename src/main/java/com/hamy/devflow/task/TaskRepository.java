@@ -37,17 +37,6 @@ public interface TaskRepository extends JpaRepository<Task,Long> {
     );
     Page<Task> findByGoalId(Long goalId, Pageable pageable);
     Page<Task> findByOwner(User owner, Pageable pageable);
-
-    Page<Task> findByOwnerAndStatus(User owner, TaskStatus status, Pageable pageable);
-
-    Page<Task> findByOwnerAndPriority(User owner, TaskPriority priority, Pageable pageable);
-
-    Page<Task> findByOwnerAndStatusAndPriority(
-            User owner,
-            TaskStatus status,
-            TaskPriority priority,
-            Pageable pageable
-    );
     Page<Task> findByStatusAndPriority(TaskStatus status,TaskPriority taskPriority, Pageable pageable);
     Page<Task> findByStatus(TaskStatus status, Pageable pageable);
     Page<Task> findByPriority(TaskPriority taskPriority, Pageable pageable);

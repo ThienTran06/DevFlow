@@ -11,9 +11,11 @@ import com.hamy.devflow.user.*;
 import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Async;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -30,6 +32,7 @@ public class AuthService {
     private final MailService mailService;
     private final EmailVerificationService emailVerificationService;
     private final PasswordResetTokenService passwordResetTokenService;
+    private final RevokeTokenService revokeTokenService;
 
     @Transactional
     public AuthResponse register(RegisterRequest registerRequest) {
@@ -45,7 +48,14 @@ public class AuthService {
                         emailVerificationService.delete(token);
                     }
                    createAndSendVerifyMail(user.get(),now);
-                   return new AuthResponse(user.get().getId(), user.get().getFullName(), user.get().getEmail(),user.get().getRole(),null,"Resend verify mail",null);
+                    return AuthResponse.builder()
+                            .userId(user.get().getId())
+                            .fullName(user.get().getFullName())
+                            .email(user.get().getEmail())
+                            .role(user.get().getRole())
+                            .message("Resend verify mail")
+                            .build();
+                   //return new AuthResponse(user.get().getId(), user.get().getFullName(), user.get().getEmail(),user.get().getRole(),null,"Resend verify mail",null);
                 }
             }
             User newUser = new User();
@@ -58,8 +68,15 @@ public class AuthService {
             newUser.setFullName(registerRequest.getFullName());
             newUser.setStatus(UserStatus.PENDING);
             User savedUser = userRepository.save(newUser);
-           createAndSendVerifyMail(savedUser,now);
-            return new AuthResponse(savedUser.getId(), savedUser.getFullName(), savedUser.getEmail(),savedUser.getRole(),null,"Registered Successfully",null);
+            createAndSendVerifyMail(savedUser,now);
+            return AuthResponse.builder()
+                    .userId(savedUser.getId())
+                    .email(savedUser.getEmail())
+                    .fullName(savedUser.getFullName())
+                    .role(savedUser.getRole())
+                    .message("Registered successfully")
+                    .build();
+            //return new AuthResponse(savedUser.getId(), savedUser.getFullName(), savedUser.getEmail(),savedUser.getRole(),null,"Registered Successfully",null);
     }
 
     private void createAndSendVerifyMail(User user, LocalDateTime now) {
@@ -99,7 +116,16 @@ public class AuthService {
         refreshTokenEntity.setOwner(existingUser);
         refreshTokenEntity.setRevoked(false);
         refreshTokenService.save(refreshTokenEntity);
-        return new AuthResponse(existingUser.getId(), existingUser.getFullName(), existingUser.getEmail(),existingUser.getRole(),accessToken,"Logged In",refreshToken);
+        return AuthResponse.builder()
+                .userId(existingUser.getId())
+                .fullName(existingUser.getFullName())
+                .email(existingUser.getEmail())
+                .role(existingUser.getRole())
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .message("Login successfully")
+                .build();
+//        return new AuthResponse(existingUser.getId(), existingUser.getFullName(), existingUser.getEmail(),existingUser.getRole(),accessToken,"Logged In",refreshToken);
     }
     @Transactional
     public AuthResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
@@ -117,6 +143,11 @@ public class AuthService {
        if(!owner.getId().equals(userId)) {
            throw new UnauthorizedException("Invalid Refresh Token");
        }
+
+       if(!owner.getStatus().equals(UserStatus.ACTIVE)) {
+           revokeTokenService.revokeAllByOwner(owner);
+           throw new UnauthorizedException("User is not active");
+       }
        String newAccessToken = jwtService.generateAccessToken(owner);
        String newRefreshToken = jwtService.generateRefreshToken(owner);
        RefreshToken newRefreshTokenEntity = new RefreshToken();
@@ -128,7 +159,15 @@ public class AuthService {
        newRefreshTokenEntity.setRevoked(false);
        refreshTokenService.save(newRefreshTokenEntity);
        refreshTokenService.revoke(refreshTokenEntity);
-       return new AuthResponse(owner.getId(), owner.getFullName(), owner.getEmail(),owner.getRole(),newAccessToken,"Refresh successfully",newRefreshToken);
+        return AuthResponse.builder()
+                .userId(userId)
+                .refreshToken(newRefreshToken)
+                .accessToken(newAccessToken)
+                .role(owner.getRole())
+                .email(owner.getEmail())
+                .fullName(owner.getFullName())
+                .message("Refresh token successfully")
+                .build();
     }
     @Transactional
     public void logout(LogoutRequest logoutRequest) {
@@ -202,4 +241,5 @@ public class AuthService {
         userRepository.save(owner);
         emailVerificationService.delete(emailVerificationToken);
     }
+
 }

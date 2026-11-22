@@ -1,15 +1,13 @@
 package com.hamy.devflow.auth.dto;
 
 import com.hamy.devflow.user.UserRole;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class AuthResponse {
     private Long userId;
     private String fullName;

@@ -31,6 +31,8 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class TaskServiceTest {
     @Mock
+    private TaskMapper taskMapper;
+    @Mock
     private TaskRepository taskRepository;
     @Mock
     private GoalRepository goalRepository;
@@ -113,6 +115,9 @@ public class TaskServiceTest {
         Authentication authentication = new UsernamePasswordAuthenticationToken(customUserDetails, null,customUserDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
         when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
+        TaskResponse expectedResponse = new TaskResponse();
+        expectedResponse.setId(task.getId());
+        when(taskMapper.toResponse(task)).thenReturn(expectedResponse);
         TaskResponse taskResponse = taskService.getTaskById(1L);
         assertNotNull(taskResponse);
         assertEquals(1L, taskResponse.getId());

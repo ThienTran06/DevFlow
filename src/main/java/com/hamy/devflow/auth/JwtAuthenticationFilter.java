@@ -34,8 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        String userId = null;
-        Claims claims = null;
+        Claims claims;
         try
         {
             claims = jwtService.parseAccessClaims(accessToken);
@@ -49,10 +48,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             response.getWriter().write("{\"message\":\"invalid_token\"}");
             return;
         }
-        userId = claims.getSubject();
+        String userId = claims.getSubject();
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(userId);
+        if (!userDetails.isEnabled()) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("{\"message\":\"user_not_active\"}");
+            return;
+        }
 
         if (SecurityContextHolder.getContext().getAuthentication()==null ) {
-            UserDetails userDetails = customUserDetailsService.loadUserByUsername(userId);
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         }

@@ -6,7 +6,10 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -16,10 +19,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message",e.getMessage()));
     }
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String,String>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e){
-        Map<String,String> error = new HashMap<>();
-        for (FieldError fieldError : e.getBindingResult().getFieldErrors()){
-            error.put(fieldError.getField(),fieldError.getDefaultMessage());
+    public ResponseEntity<Map<String, List<String>>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e){
+        Map<String, List<String>> error = new HashMap<>();
+        for(FieldError fieldError : e.getBindingResult().getFieldErrors()){
+            error.computeIfAbsent(fieldError.getField(), k -> new ArrayList<>()).add(fieldError.getDefaultMessage());
+            //compute if absent se kiem tra neu field chua ton tai thi taoj field moi, con da co thi se tra ve danh sach da co cua file do
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(error);

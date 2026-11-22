@@ -57,6 +57,11 @@ public class SecurityConfig {
                             response.setContentType("application/json;charset=UTF-8");
                             response.getWriter().write("{\"message\":\"You are not authorized to access this resource\"}");
                             })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write("{\"message\":\"You are forbidden to access this resource\"}");
+                        })
                 ).build();
     }
 }
