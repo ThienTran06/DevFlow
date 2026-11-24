@@ -6,17 +6,15 @@ import com.hamy.devflow.goal.Goal;
 import com.hamy.devflow.goal.GoalRepository;
 import com.hamy.devflow.task.dto.TaskRequest;
 import com.hamy.devflow.task.dto.TaskResponse;
-import com.hamy.devflow.user.CustomUserDetails;
 import com.hamy.devflow.user.User;
 import com.hamy.devflow.utils.CheckPageAndSizeUtil;
+import com.hamy.devflow.utils.GetCurrentUserUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import com.hamy.devflow.common.exception.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,7 +22,6 @@ import java.util.List;
 
 @Service
 public class TaskService {
-    private CheckPageAndSizeUtil checkPageAndSizeUtil;
     private final TaskMapper taskMapper;
     private final TaskRepository taskRepository;
     private final GoalRepository goalRepository;
@@ -37,9 +34,7 @@ public class TaskService {
     public TaskResponse createTask(TaskRequest taskRequest) {
         Goal goal = findGoalById(taskRequest.getGoalId());
         Task newTask = new Task();
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails customUserDetails =(CustomUserDetails) authentication.getPrincipal();
-        User currentUser = customUserDetails.getUser();
+        User currentUser = GetCurrentUserUtil.getCurrentUser();
         if(!currentUser.getId().equals(goal.getOwner().getId())){
             throw new AccessDeniedException("Người dùng không thuộc goal này");
         }
@@ -66,7 +61,7 @@ public class TaskService {
     }
     @PreAuthorize("hasRole('ADMIN')")
     public Page<TaskResponse> getAllTasks(int Page, int size,TaskStatus status, TaskPriority priority) {
-       checkPageAndSizeUtil.checkPageAndSize(Page, size);
+       CheckPageAndSizeUtil.checkPageAndSize(Page, size);
        Pageable pageable = PageRequest.of(Page, size);
        Page<Task> tasksPage;
        if(status == null&&priority == null){
@@ -88,18 +83,6 @@ public class TaskService {
         return goalRepository.findById(goalId).orElseThrow(()-> new ResourceNotFoundException("Không tìm thấy goal có id = " + goalId));
     }
     private TaskResponse toTaskResponse(Task task) {
-//        TaskResponse taskResponse = new TaskResponse();
-//        taskResponse.setId(task.getId());
-//        taskResponse.setTitle(task.getTitle());
-//        taskResponse.setDescription(task.getDescription());
-//        taskResponse.setStatus(task.getStatus());
-//        taskResponse.setDeadline(task.getDeadline());
-//        taskResponse.setPriority(task.getPriority());
-//        taskResponse.setCreatedAt(task.getCreatedAt());
-//        taskResponse.setUpdatedAt(task.getUpdatedAt());
-//        taskResponse.setGoalId(task.getGoal().getId());
-//        taskResponse.setGoalTitle(task.getGoal().getTitle());
-//        taskResponse.setOverdue(task.getDeadline()!=null&&task.getDeadline().isBefore(LocalDateTime.now())&&task.getStatus()!=TaskStatus.DONE);
         return taskMapper.toResponse(task);
     }
     private Task findTaskById(Long taskId) {
@@ -108,9 +91,7 @@ public class TaskService {
     @PreAuthorize("hasAuthority('VIEW_TASK')")
     public TaskResponse getTaskById(Long taskId) {
         Task task = findTaskById(taskId);
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails customUserDetails =(CustomUserDetails) authentication.getPrincipal();
-        User currentUser = customUserDetails.getUser();
+        User currentUser = GetCurrentUserUtil.getCurrentUser();
         if (!task.getOwner().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException("You are not the owner of this task");
         }
@@ -119,9 +100,7 @@ public class TaskService {
     @PreAuthorize("hasAuthority('UPDATE_TASK')")
     public TaskResponse updateTaskById(Long taskId, TaskRequest taskRequest) {
         Task task = findTaskById(taskId);
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails customUserDetails =(CustomUserDetails) authentication.getPrincipal();
-        User currentUser = customUserDetails.getUser();
+        User currentUser = GetCurrentUserUtil.getCurrentUser();
         if (!task.getOwner().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException("You are not the owner of this task");
         }
@@ -148,9 +127,7 @@ public class TaskService {
     @PreAuthorize("hasAuthority('DELETE_TASK')")
     public void deleteTaskById(Long taskId) {
         Task task = findTaskById(taskId);
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails customUserDetails =(CustomUserDetails) authentication.getPrincipal();
-        User currentUser = customUserDetails.getUser();
+        User currentUser = GetCurrentUserUtil.getCurrentUser();
         if (!task.getOwner().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException("You are not the owner of this task");
         }
@@ -158,17 +135,13 @@ public class TaskService {
     }
     public Page<TaskResponse> findByGoalId(Long goalId,int page,int size) {
         Goal goal = findGoalById(goalId);
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails =
-                (CustomUserDetails) authentication.getPrincipal();
-        User currentUser = userDetails.getUser();
+        User currentUser = GetCurrentUserUtil.getCurrentUser();
         if (!goal.getOwner().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException(
                     "Bạn không có quyền xem task trong goal này"
             );
         }
-
+        CheckPageAndSizeUtil.checkPageAndSize(page, size);
         Pageable pageable = PageRequest.of(page, size);
         Page<Task> tasksPage = taskRepository.findByGoalId(goalId,pageable);
         return tasksPage.map(this::toTaskResponse);
@@ -176,16 +149,13 @@ public class TaskService {
 
     @PreAuthorize("hasAuthority('VIEW_TASK')")
     public Page<TaskResponse> getTasks(Boolean overdue,TaskStatus status, TaskPriority priority, int page, int size,String sortBy, String sortOrder) {
-        checkPageAndSizeUtil.checkPageAndSize(page, size);
+        CheckPageAndSizeUtil.checkPageAndSize(page, size);
         List<String> acceptedSortByFields = List.of("id","priority","status","createdAt","updatedAt","deadline","title");
         if(!acceptedSortByFields.contains(sortBy)) {throw new BadRequestException("Invalid sort field: "+sortBy);}
         Sort sort = sortOrder.equalsIgnoreCase("asc")?Sort.by(sortBy).ascending():Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size,sort);
         Page<Task> taskPage;
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails =
-                (CustomUserDetails) authentication.getPrincipal();
-        User currentUser = userDetails.getUser();
+        User currentUser = GetCurrentUserUtil.getCurrentUser();
 
       taskPage = taskRepository.findTasks(currentUser,status,priority,overdue,LocalDateTime.now(),TaskStatus.DONE,pageable);
       return taskPage.map(this::toTaskResponse);
@@ -207,10 +177,7 @@ public class TaskService {
     }
     @PreAuthorize("hasAuthority('VIEW_TASK')")
     public long getNumberOfMyTasks(TaskStatus taskStatus, TaskPriority taskPriority) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails =
-                (CustomUserDetails) authentication.getPrincipal();
-        User currentUser = userDetails.getUser();
+        User currentUser = GetCurrentUserUtil.getCurrentUser();
         if(taskStatus == null&&taskPriority==null){
             return taskRepository.countByOwner(currentUser);
         }

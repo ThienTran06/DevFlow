@@ -3,23 +3,20 @@ package com.hamy.devflow.goal;
 import com.hamy.devflow.common.exception.ResourceNotFoundException;
 import com.hamy.devflow.goal.dto.GoalRequest;
 import com.hamy.devflow.goal.dto.GoalResponse;
-import com.hamy.devflow.user.CustomUserDetails;
 import com.hamy.devflow.user.User;
 import com.hamy.devflow.utils.CheckPageAndSizeUtil;
+import com.hamy.devflow.utils.GetCurrentUserUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import com.hamy.devflow.common.exception.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
 @Service
 public class GoalService {
-    private CheckPageAndSizeUtil checkPageAndSizeUtil;
     private final GoalRepository goalRepository;
     private final GoalMapper goalMapper;
     public GoalService(GoalRepository goalRepository, GoalMapper goalMapper) {
@@ -40,37 +37,30 @@ public class GoalService {
         newGoal.setDeadline(newGoalRequest.getDeadline());
         newGoal.setDescription(newGoalRequest.getDescription());
         newGoal.setTitle(newGoalRequest.getTitle());
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails customUserDetails =(CustomUserDetails) authentication.getPrincipal();
-        User currentUser = customUserDetails.getUser();
+        User currentUser = GetCurrentUserUtil.getCurrentUser();
         newGoal.setOwner(currentUser);
         Goal savedGoal = goalRepository.save(newGoal);
         return toGoalResponse(savedGoal);
     }
     @PreAuthorize("hasRole('ADMIN')")
     public Page<GoalResponse> getAllGoals(Long userId,int page, int size,GoalStatus status,Boolean overdue) {
-        checkPageAndSizeUtil.checkPageAndSize(page, size);
+        CheckPageAndSizeUtil.checkPageAndSize(page, size);
         Pageable pageable = PageRequest.of(page, size);
         Page<Goal> goalsPage= goalRepository.findGoals(userId,status,overdue,LocalDateTime.now(),GoalStatus.DONE,pageable);
         return goalsPage.map(this::toGoalResponse);
     }
     @PreAuthorize("hasAuthority('VIEW_GOAL')")
     public Page<GoalResponse> getGoals(int page, int size,GoalStatus status,Boolean overdue) {
-        checkPageAndSizeUtil.checkPageAndSize(page, size);
+        CheckPageAndSizeUtil.checkPageAndSize(page, size);
         Pageable pageable = PageRequest.of(page, size);
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails =
-                (CustomUserDetails) authentication.getPrincipal();
-        User currentUser = userDetails.getUser();
+        User currentUser = GetCurrentUserUtil.getCurrentUser();
         Page<Goal> goalsPage=goalRepository.findGoals(currentUser.getId(),status,overdue,LocalDateTime.now(),GoalStatus.DONE,pageable);
         return goalsPage.map(this::toGoalResponse);
     }
     @PreAuthorize("hasAuthority('VIEW_GOAL')")
     public GoalResponse getGoalById(Long id) {
          Goal goal =  findGoalById(id);
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails customUserDetails =(CustomUserDetails) authentication.getPrincipal();
-        User currentUser = customUserDetails.getUser();
+        User currentUser = GetCurrentUserUtil.getCurrentUser();
         if (!goal.getOwner().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException("You are not the owner of this goal");
         }
@@ -79,9 +69,7 @@ public class GoalService {
     @PreAuthorize("hasAuthority('UPDATE_GOAL')")
     public GoalResponse updateGoalById(Long id, GoalRequest newGoalRequest){
         Goal goal = findGoalById(id);
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails customUserDetails =(CustomUserDetails) authentication.getPrincipal();
-        User currentUser = customUserDetails.getUser();
+        User currentUser = GetCurrentUserUtil.getCurrentUser();
         if (!goal.getOwner().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException("You are not the owner of this goal");
         }
@@ -98,25 +86,13 @@ public class GoalService {
     @PreAuthorize("hasAuthority('DELETE_GOAL')")
     public void deleteGoalById(Long id){
         Goal goal = findGoalById(id);
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails customUserDetails =(CustomUserDetails) authentication.getPrincipal();
-        User currentUser = customUserDetails.getUser();
+        User currentUser = GetCurrentUserUtil.getCurrentUser();
         if (!goal.getOwner().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException("You are not the owner of this goal");
         }
         goalRepository.delete(goal);
     }
     private GoalResponse toGoalResponse(Goal goal){
-//        GoalResponse goalResponse = new GoalResponse();
-//        goalResponse.setId(goal.getId());
-//        goalResponse.setDeadline(goal.getDeadline());
-//        goalResponse.setDescription(goal.getDescription());
-//        goalResponse.setTitle(goal.getTitle());
-//        goalResponse.setCreatedAt(goal.getCreatedAt());
-//        goalResponse.setUpdatedAt(goal.getUpdatedAt());
-//        goalResponse.setStatus(goal.getStatus());
-//        goalResponse.setOverdue(goal.getDeadline()!=null&&goal.getDeadline().isBefore(LocalDateTime.now())&&goal.getStatus()!=GoalStatus.DONE);
-//        return goalResponse;
         return goalMapper.toResponse(goal);
     }
     private Goal findGoalById(Long id){
@@ -132,9 +108,7 @@ public class GoalService {
     }
     @PreAuthorize("hasAuthority('VIEW_GOAL')")
     public long getMyNumberOfGoals(GoalStatus goalStatus) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails customUserDetails =(CustomUserDetails) authentication.getPrincipal();
-        User currentUser = customUserDetails.getUser();
+        User currentUser = GetCurrentUserUtil.getCurrentUser();
         if(goalStatus == null){
             return goalRepository.countByOwner(currentUser);
         }
@@ -142,9 +116,7 @@ public class GoalService {
     }
     @PreAuthorize("hasAuthority('VIEW_GOAL')")
     public Page<GoalResponse> getMyGoals(Pageable pageable,GoalStatus goalStatus) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails customUserDetails =(CustomUserDetails) authentication.getPrincipal();
-        User currentUser = customUserDetails.getUser();
+        User currentUser = GetCurrentUserUtil.getCurrentUser();
         if(goalStatus == null){
             Page<Goal> goalsPage = goalRepository.findByOwner(currentUser, pageable);
             return goalsPage.map(this::toGoalResponse);

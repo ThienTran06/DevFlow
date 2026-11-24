@@ -97,11 +97,14 @@ All routes other than authentication and health checks require an access token i
 | Health | `GET /api/health` |
 | Authentication | `POST /api/auth/register`, `/login`, `/refresh`, `/logout`, `/forget-password`, `/reset-password`, `/verify-email` |
 | Tasks | `GET /api/tasks`, `GET /api/tasks/{id}`, `POST /api/tasks`, `PUT /api/tasks/{id}`, `DELETE /api/tasks/{id}` |
-| Goals | `GET /api/goals`, `GET /api/goals/mines`, `GET /api/goals/{id}`, `POST /api/goals`, `PUT /api/goals/{id}`, `DELETE /api/goals/{id}` |
+| Goals | `GET /api/goals` (admin list), `GET /api/goals/mines`, `GET /api/goals/{id}`, `POST /api/goals`, `PUT /api/goals/{id}`, `DELETE /api/goals/{id}` |
 | Goal tasks | `GET /api/goals/{goalId}/tasks` |
 | Dashboard | `GET /api/dashboard` |
+| User profile | `GET /api/users`, `PUT /api/users/me` |
 
-Admin routes include `GET /api/tasks/admin`, `GET /api/tasks/admin/count`, `GET /api/goals/admin`, and `GET /api/dashboard/admin`. Goals and tasks support pagination; tasks can also be filtered by status and priority.
+Admin routes include `GET /api/tasks/admin`, `GET /api/tasks/admin/count`, `GET /api/goals` (admin list), `GET /api/goals/admin` (admin count), and `GET /api/dashboard/admin`. `GET /api/goals/count` returns the authenticated user's goal count. Goals and tasks support pagination; tasks can also be filtered by status and priority.
+
+The profile endpoints operate on the authenticated user. Profile updates currently accept `fullName`; responses omit the password.
 
 Task statuses are `TODO`, `IN_PROGRESS`, and `DONE`; priorities are `LOW`, `MEDIUM`, and `HIGH`. Goal statuses are `TODO`, `IN_PROGRESS`, and `DONE`.
 
