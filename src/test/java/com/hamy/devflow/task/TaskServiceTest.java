@@ -1,6 +1,6 @@
 package com.hamy.devflow.task;
 
-import com.hamy.devflow.common.exception.ResourceNotFoundException;
+import com.hamy.devflow.common.exceptions.ResourceNotFoundException;
 import com.hamy.devflow.goal.Goal;
 import com.hamy.devflow.goal.GoalRepository;
 import com.hamy.devflow.task.dto.TaskRequest;
@@ -17,11 +17,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-
+import com.hamy.devflow.common.exceptions.AccessDeniedException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;

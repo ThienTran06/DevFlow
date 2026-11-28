@@ -1,19 +1,19 @@
 package com.hamy.devflow.task;
 
-import com.hamy.devflow.common.exception.BadRequestException;
-import com.hamy.devflow.common.exception.ResourceNotFoundException;
+import com.hamy.devflow.common.exceptions.BadRequestException;
+import com.hamy.devflow.common.exceptions.ResourceNotFoundException;
 import com.hamy.devflow.goal.Goal;
 import com.hamy.devflow.goal.GoalRepository;
 import com.hamy.devflow.task.dto.TaskRequest;
 import com.hamy.devflow.task.dto.TaskResponse;
 import com.hamy.devflow.user.User;
-import com.hamy.devflow.utils.CheckPageAndSizeUtil;
-import com.hamy.devflow.utils.GetCurrentUserUtil;
+import com.hamy.devflow.common.utils.CheckPageAndSizeUtil;
+import com.hamy.devflow.common.utils.GetCurrentUserUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import com.hamy.devflow.common.exception.AccessDeniedException;
+import com.hamy.devflow.common.exceptions.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -152,7 +152,16 @@ public class TaskService {
         CheckPageAndSizeUtil.checkPageAndSize(page, size);
         List<String> acceptedSortByFields = List.of("id","priority","status","createdAt","updatedAt","deadline","title");
         if(!acceptedSortByFields.contains(sortBy)) {throw new BadRequestException("Invalid sort field: "+sortBy);}
-        Sort sort = sortOrder.equalsIgnoreCase("asc")?Sort.by(sortBy).ascending():Sort.by(sortBy).descending();
+        Sort sort;
+        if(sortOrder.equalsIgnoreCase("asc")) {
+            sort = Sort.by(sortBy).ascending();
+        }
+        else if(sortOrder.equalsIgnoreCase("desc")) {
+            sort = Sort.by(sortBy).descending();
+        }
+        else{
+            throw new BadRequestException("Invalid sort order: "+sortOrder);
+        }
         Pageable pageable = PageRequest.of(page, size,sort);
         Page<Task> taskPage;
         User currentUser = GetCurrentUserUtil.getCurrentUser();

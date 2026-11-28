@@ -57,5 +57,12 @@ public class CustomUserDetails implements UserDetails {
     public String getPassword() {
         return user.getPassword();
     }
+    public Long getTokenVersion(){
+       return user.getTokenVersion();
+    }
+    public Long setTokenVersion(Long version){
+       user.setTokenVersion(version);
+       return user.getTokenVersion();
+    }
 
 }

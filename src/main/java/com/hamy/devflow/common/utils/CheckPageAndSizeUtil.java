@@ -1,6 +1,6 @@
-package com.hamy.devflow.utils;
+package com.hamy.devflow.common.utils;
 
-import com.hamy.devflow.common.exception.BadRequestException;
+import com.hamy.devflow.common.exceptions.BadRequestException;
 
 
 public final class CheckPageAndSizeUtil {

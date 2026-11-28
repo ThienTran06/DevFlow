@@ -3,9 +3,8 @@ package com.hamy.devflow.auth;
 import com.hamy.devflow.auth.dto.*;
 import com.hamy.devflow.auth.refresh.RefreshToken;
 import com.hamy.devflow.auth.refresh.RefreshTokenService;
-import com.hamy.devflow.common.exception.BadRequestException;
-import com.hamy.devflow.common.exception.ResourceNotFoundException;
-import com.hamy.devflow.common.exception.UnauthorizedException;
+import com.hamy.devflow.common.exceptions.BadRequestException;
+import com.hamy.devflow.common.exceptions.UnauthorizedException;
 import com.hamy.devflow.mail.MailService;
 import com.hamy.devflow.user.*;
 import io.jsonwebtoken.Claims;
@@ -14,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -95,11 +93,11 @@ public class AuthService {
     public AuthResponse login(LoginRequest loginRequest) {
         Optional <User> user =userRepository.findByEmail(loginRequest.getEmail());
         if (user.isEmpty()) {
-            throw new BadRequestException("Email does not exists");
+            throw new UnauthorizedException("Email does not exists or wrong password");
         }
         User existingUser = user.get();
         if(!passwordEncoder.matches(loginRequest.getPassword(),existingUser.getPassword())) {
-            throw new BadRequestException("Wrong Password");
+            throw new UnauthorizedException("Email does not exists or wrong password");
         }
         if(!existingUser.getStatus().equals(UserStatus.ACTIVE)){
             throw new UnauthorizedException("User is not active");
@@ -191,19 +189,22 @@ public class AuthService {
     public void forgotPassword(ForgotPasswordRequest forgotPasswordRequest) {
         String email  = forgotPasswordRequest.getEmail();
         UUID uuid = UUID.randomUUID();
-        User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("Email not found"));
-        List<PasswordResetToken> oldToken = passwordResetTokenService.findByOwner(user);
+        Optional<User> user = userRepository.findByEmail(email);
+        if(user.isEmpty()) {
+            return;
+        }
+        List<PasswordResetToken> oldToken = passwordResetTokenService.findByOwner(user.get());
         for(PasswordResetToken token : oldToken) {
             passwordResetTokenService.markAsUsed(token);
         }
         PasswordResetToken passwordResetToken = new PasswordResetToken();
         passwordResetToken.setToken(uuid.toString());
-        passwordResetToken.setOwner(user);
+        passwordResetToken.setOwner(user.get());
         passwordResetToken.setCreatedAt(LocalDateTime.now());
         passwordResetToken.setExpiredAt(LocalDateTime.now().plusHours(1));
         passwordResetToken.setUsed(false);
         passwordResetTokenService.save(passwordResetToken);
-        mailService.sendResetPasswordMail(user, passwordResetToken);
+        mailService.sendResetPasswordMail(user.get(), passwordResetToken);
     }
     @Transactional
     public void resetPassword(ResetPasswordRequest resetPasswordRequest) {
@@ -221,6 +222,7 @@ public class AuthService {
         String encodedNewPassword = passwordEncoder.encode(newPassword);
         owner.setPassword(encodedNewPassword);
         owner.setUpdatedAt(LocalDateTime.now());
+        owner.setTokenVersion(owner.getTokenVersion() + 1);
         userRepository.save(owner);
         passwordResetTokenService.markAsUsed(passwordResetToken);
         refreshTokenService.revokeAllByOwner(owner);

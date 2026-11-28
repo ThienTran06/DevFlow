@@ -1,4 +1,4 @@
-package com.hamy.devflow.common.exception;
+package com.hamy.devflow.common.exceptions;
 
 public class BadRequestException extends RuntimeException {
     public BadRequestException(String message) {

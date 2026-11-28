@@ -12,7 +12,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         this.userRepository = userRepository;
     }
     @Override
-    public UserDetails loadUserByUsername(String username) {
+    public CustomUserDetails loadUserByUsername(String username) {
         User user = userRepository.findById(Long.parseLong(username)).orElseThrow(() -> new UsernameNotFoundException(username));
         return new CustomUserDetails(user);
     }

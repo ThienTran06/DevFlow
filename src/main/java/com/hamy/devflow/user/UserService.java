@@ -1,9 +1,9 @@
 package com.hamy.devflow.user;
 
-import com.hamy.devflow.common.exception.BadRequestException;
+import com.hamy.devflow.common.exceptions.BadRequestException;
 import com.hamy.devflow.user.dto.UpdateProfileRequest;
 import com.hamy.devflow.user.dto.UserResponse;
-import com.hamy.devflow.utils.GetCurrentUserUtil;
+import com.hamy.devflow.common.utils.GetCurrentUserUtil;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

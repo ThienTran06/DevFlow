@@ -1,5 +1,6 @@
 package com.hamy.devflow.auth;
 
+import com.hamy.devflow.user.CustomUserDetails;
 import com.hamy.devflow.user.CustomUserDetailsService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -49,8 +50,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         String userId = claims.getSubject();
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(userId);
-        if (!userDetails.isEnabled()) {
+        CustomUserDetails userDetails  = customUserDetailsService.loadUserByUsername(userId);
+        Number tokenVersionClaim = (Number) claims.get("tokenVersion");
+        if (!userDetails.isEnabled()||tokenVersionClaim==null||!userDetails.getTokenVersion().equals(tokenVersionClaim.longValue())) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");

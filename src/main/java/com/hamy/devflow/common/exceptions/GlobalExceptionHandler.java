@@ -1,4 +1,4 @@
-package com.hamy.devflow.common.exception;
+package com.hamy.devflow.common.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

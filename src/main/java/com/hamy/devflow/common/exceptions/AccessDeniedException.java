@@ -1,4 +1,4 @@
-package com.hamy.devflow.common.exception;
+package com.hamy.devflow.common.exceptions;
 
 public class AccessDeniedException extends RuntimeException {
     public AccessDeniedException(String message) {

@@ -4,6 +4,7 @@ import com.hamy.devflow.task.TaskPriority;
 import com.hamy.devflow.task.TaskStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import java.time.LocalDateTime;
 @Getter
@@ -12,7 +13,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class TaskRequest {
     @NotBlank(message = "Title không được rỗng")
+    @Size(max=255)
     private String title;
+    @Size(max=255)
     private String description;
     private TaskStatus status;
     private TaskPriority priority;

@@ -1,4 +1,4 @@
-package com.hamy.devflow.utils;
+package com.hamy.devflow.common.utils;
 
 import com.hamy.devflow.user.CustomUserDetails;
 import com.hamy.devflow.user.User;

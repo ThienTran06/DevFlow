@@ -51,10 +51,10 @@ docker compose pull app
 docker compose up -d
 ```
 
-The API listens on `http://localhost:8080`; MySQL is exposed on port `3307`. Check that the application is running:
+The API is available at `http://localhost:8081` (host port `8081` mapped to container port `8080`); MySQL is exposed on port `3307`. Check that the application is running:
 
 ```bash
-curl http://localhost:8080/api/health
+curl http://localhost:8081/api/health
 ```
 
 To view container logs, run `docker compose logs -f app`. Stop the services with `docker compose down`.
@@ -73,17 +73,29 @@ On Windows PowerShell:
 .\mvnw.cmd spring-boot:run
 ```
 
+The local profile listens on port `8081`.
+
 On macOS or Linux:
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
+## Run tests
+
+The integration tests use Testcontainers to start an isolated MySQL 8 container. On Windows, start Docker Desktop and wait until its engine is ready; verify it with `docker info`, then run:
+
+```powershell
+.\mvnw.cmd test
+```
+
+You do not need `docker compose up` for the tests. Testcontainers manages the test database lifecycle. Use `docker compose up -d mysql` only when running the application locally with `spring-boot:run`.
+
 ## Database migrations
 
 Flyway migrations are stored in `src/main/resources/db/migration` and run when the application starts. Hibernate uses `ddl-auto=validate`, so schema changes must be made through a new migration rather than automatic entity updates.
 
-- A new database runs `V1__create_initial_schema.sql` followed by `V2__add_goal_deadline.sql`.
+- A new database runs `V1__create_initial_schema.sql`, `V2__add_goal_deadline.sql`, and `V3__add_token_version.sql`.
 - The existing local database is baselined at version 1 so Flyway preserves its tables and applies V2.
 - Do not edit migrations after they have been applied. Add a new, higher-version migration instead.
 - Before baselining an existing production database, back it up and verify that its schema matches V1.
@@ -100,9 +112,9 @@ All routes other than authentication and health checks require an access token i
 | Goals | `GET /api/goals` (admin list), `GET /api/goals/mines`, `GET /api/goals/{id}`, `POST /api/goals`, `PUT /api/goals/{id}`, `DELETE /api/goals/{id}` |
 | Goal tasks | `GET /api/goals/{goalId}/tasks` |
 | Dashboard | `GET /api/dashboard` |
-| User profile | `GET /api/users`, `PUT /api/users/me` |
+| User profile | `GET /api/users/me`, `PUT /api/users/me` |
 
-Admin routes include `GET /api/tasks/admin`, `GET /api/tasks/admin/count`, `GET /api/goals` (admin list), `GET /api/goals/admin` (admin count), and `GET /api/dashboard/admin`. `GET /api/goals/count` returns the authenticated user's goal count. Goals and tasks support pagination; tasks can also be filtered by status and priority.
+Admin routes include `GET /api/tasks/admin`, `GET /api/tasks/admin/count`, `GET /api/goals` (admin list), `GET /api/goals/admin` (admin count), and `GET /api/dashboard/admin`. `GET /api/goals/count` returns the authenticated user's goal count. Goals support pagination, status, and overdue filters. Tasks support pagination, status, priority, and overdue filters. `GET /api/tasks` accepts `sortBy` values `id`, `priority`, `status`, `createdAt`, `updatedAt`, `deadline`, or `title`, and a `direction` of `asc` or `desc`.
 
 The profile endpoints operate on the authenticated user. Profile updates currently accept `fullName`; responses omit the password.
 

@@ -1,15 +1,15 @@
 package com.hamy.devflow.goal;
 
-import com.hamy.devflow.common.exception.ResourceNotFoundException;
+import com.hamy.devflow.common.exceptions.ResourceNotFoundException;
 import com.hamy.devflow.goal.dto.GoalRequest;
 import com.hamy.devflow.goal.dto.GoalResponse;
 import com.hamy.devflow.user.User;
-import com.hamy.devflow.utils.CheckPageAndSizeUtil;
-import com.hamy.devflow.utils.GetCurrentUserUtil;
+import com.hamy.devflow.common.utils.CheckPageAndSizeUtil;
+import com.hamy.devflow.common.utils.GetCurrentUserUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import com.hamy.devflow.common.exception.AccessDeniedException;
+import com.hamy.devflow.common.exceptions.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 

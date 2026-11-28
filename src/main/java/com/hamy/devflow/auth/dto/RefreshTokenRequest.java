@@ -1,6 +1,7 @@
 package com.hamy.devflow.auth.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,5 +14,6 @@ import lombok.Setter;
 
 public class RefreshTokenRequest {
     @NotBlank(message = "Token is required")
+    @Size(max=255)
     private String refreshToken;
 }

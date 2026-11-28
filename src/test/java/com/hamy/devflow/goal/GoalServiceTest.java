@@ -1,6 +1,6 @@
 package com.hamy.devflow.goal;
 
-import com.hamy.devflow.common.exception.ResourceNotFoundException;
+import com.hamy.devflow.common.exceptions.ResourceNotFoundException;
 import com.hamy.devflow.goal.dto.GoalRequest;
 import com.hamy.devflow.goal.dto.GoalResponse;
 import com.hamy.devflow.user.CustomUserDetails;
@@ -18,10 +18,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.Optional;
-import org.springframework.security.access.AccessDeniedException;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import com.hamy.devflow.common.exceptions.AccessDeniedException;
 
 @ExtendWith(MockitoExtension.class)
 public class GoalServiceTest {
